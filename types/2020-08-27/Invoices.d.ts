@@ -26,6 +26,11 @@ declare module 'stripe' {
       account_name: string | null;
 
       /**
+       * The account tax IDs associated with the invoice. Only editable when the invoice is a draft.
+       */
+      account_tax_ids?: Array<string | Stripe.TaxId | DeletedTaxId> | null;
+
+      /**
        * Final amount due at this time for this invoice. If the invoice's total is smaller than the minimum charge amount, for example, or if there is account credit that can be applied to the invoice, the `amount_due` may be 0. If there is a positive `starting_balance` for the invoice (the customer owes money), the `amount_due` will also take that into account. The charge that gets generated for the invoice will be for the amount specified in `amount_due`.
        */
       amount_due: number;
@@ -93,12 +98,12 @@ declare module 'stripe' {
       /**
        * The ID of the customer who will be billed.
        */
-      customer: string | Stripe.Customer | Stripe.DeletedCustomer;
+      customer: string | Stripe.Customer | DeletedCustomer;
 
       /**
        * The customer's address. Until the invoice is finalized, this field will equal `customer.address`. Once the invoice is finalized, this field will no longer be updated.
        */
-      customer_address: Address | null;
+      customer_address: Stripe.Address | null;
 
       /**
        * The customer's email. Until the invoice is finalized, this field will equal `customer.email`. Once the invoice is finalized, this field will no longer be updated.
@@ -138,12 +143,12 @@ declare module 'stripe' {
       /**
        * ID of the default payment source for the invoice. It must belong to the customer associated with the invoice and be in a chargeable state. If not set, defaults to the subscription's default source, if any, or to the customer's default source.
        */
-      default_source: string | CustomerSource | null;
+      default_source: string | Stripe.CustomerSource | null;
 
       /**
        * The tax rates applied to this invoice, if any.
        */
-      default_tax_rates: Array<Stripe.TaxRate> | null;
+      default_tax_rates: Array<Stripe.TaxRate>;
 
       deleted?: void;
 
@@ -160,9 +165,7 @@ declare module 'stripe' {
       /**
        * The discounts applied to the invoice. Line item discounts are applied before invoice discounts. Use `expand[]=discounts` to expand each discount.
        */
-      discounts: Array<
-        string | Stripe.Discount | Stripe.DeletedDiscount
-      > | null;
+      discounts: Array<string | Stripe.Discount | DeletedDiscount> | null;
 
       /**
        * The date on which payment for this invoice is due. This value will be `null` for invoices where `collection_method=charge_automatically`.
@@ -190,6 +193,11 @@ declare module 'stripe' {
       invoice_pdf?: string | null;
 
       /**
+       * The error encountered during the previous attempt to finalize the invoice. This field is cleared when the invoice is successfully finalized.
+       */
+      last_finalization_error?: Invoice.LastFinalizationError | null;
+
+      /**
        * The individual line items that make up the invoice. `lines` is sorted as follows: invoice items in reverse chronological order, followed by the subscription, if any.
        */
       lines: ApiList<Stripe.InvoiceLineItem>;
@@ -202,7 +210,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
        */
-      metadata: Metadata | null;
+      metadata: Stripe.Metadata | null;
 
       /**
        * The time at which payment will next be attempted. This value will be `null` for invoices where `collection_method=send_invoice`.
@@ -301,7 +309,7 @@ declare module 'stripe' {
       /**
        * The aggregate amounts calculated per tax rate for all line items.
        */
-      total_tax_amounts: Array<Invoice.TotalTaxAmount> | null;
+      total_tax_amounts: Array<Invoice.TotalTaxAmount>;
 
       /**
        * The account (if any) the payment will be attributed to for tax reporting, and where funds from the payment will be transferred to for the invoice.
@@ -328,7 +336,7 @@ declare module 'stripe' {
       type CollectionMethod = 'charge_automatically' | 'send_invoice';
 
       interface CustomerShipping {
-        address?: Address;
+        address?: Stripe.Address;
 
         /**
          * The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc.
@@ -414,6 +422,111 @@ declare module 'stripe' {
         value: string;
       }
 
+      interface LastFinalizationError {
+        /**
+         * For card errors, the ID of the failed charge.
+         */
+        charge?: string;
+
+        /**
+         * For some errors that could be handled programmatically, a short string indicating the [error code](https://stripe.com/docs/error-codes) reported.
+         */
+        code?: string;
+
+        /**
+         * For card errors resulting from a card issuer decline, a short string indicating the [card issuer's reason for the decline](https://stripe.com/docs/declines#issuer-declines) if they provide one.
+         */
+        decline_code?: string;
+
+        /**
+         * A URL to more information about the [error code](https://stripe.com/docs/error-codes) reported.
+         */
+        doc_url?: string;
+
+        /**
+         * A human-readable message providing more details about the error. For card errors, these messages can be shown to your users.
+         */
+        message?: string;
+
+        /**
+         * If the error is parameter-specific, the parameter related to the error. For example, you can use this to display a message near the correct form field.
+         */
+        param?: string;
+
+        /**
+         * A PaymentIntent guides you through the process of collecting a payment from your customer.
+         * We recommend that you create exactly one PaymentIntent for each order or
+         * customer session in your system. You can reference the PaymentIntent later to
+         * see the history of payment attempts for a particular session.
+         *
+         * A PaymentIntent transitions through
+         * [multiple statuses](https://stripe.com/docs/payments/intents#intent-statuses)
+         * throughout its lifetime as it interfaces with Stripe.js to perform
+         * authentication flows and ultimately creates at most one successful charge.
+         *
+         * Related guide: [Payment Intents API](https://stripe.com/docs/payments/payment-intents).
+         */
+        payment_intent?: Stripe.PaymentIntent;
+
+        /**
+         * PaymentMethod objects represent your customer's payment instruments.
+         * They can be used with [PaymentIntents](https://stripe.com/docs/payments/payment-intents) to collect payments or saved to
+         * Customer objects to store instrument details for future payments.
+         *
+         * Related guides: [Payment Methods](https://stripe.com/docs/payments/payment-methods) and [More Payment Scenarios](https://stripe.com/docs/payments/more-payment-scenarios).
+         */
+        payment_method?: Stripe.PaymentMethod;
+
+        /**
+         * If the error is specific to the type of payment method, the payment method type that had a problem. This field is only populated for invoice-related errors.
+         */
+        payment_method_type?: string;
+
+        /**
+         * A SetupIntent guides you through the process of setting up and saving a customer's payment credentials for future payments.
+         * For example, you could use a SetupIntent to set up and save your customer's card without immediately collecting a payment.
+         * Later, you can use [PaymentIntents](https://stripe.com/docs/api#payment_intents) to drive the payment flow.
+         *
+         * Create a SetupIntent as soon as you're ready to collect your customer's payment credentials.
+         * Do not maintain long-lived, unconfirmed SetupIntents as they may no longer be valid.
+         * The SetupIntent then transitions through multiple [statuses](https://stripe.com/docs/payments/intents#intent-statuses) as it guides
+         * you through the setup process.
+         *
+         * Successful SetupIntents result in payment credentials that are optimized for future payments.
+         * For example, cardholders in [certain regions](https://stripe.com/guides/strong-customer-authentication) may need to be run through
+         * [Strong Customer Authentication](https://stripe.com/docs/strong-customer-authentication) at the time of payment method collection
+         * in order to streamline later [off-session payments](https://stripe.com/docs/payments/setup-intents).
+         * If the SetupIntent is used with a [Customer](https://stripe.com/docs/api#setup_intent_object-customer), upon success,
+         * it will automatically attach the resulting payment method to that Customer.
+         * We recommend using SetupIntents or [setup_future_usage](https://stripe.com/docs/api#payment_intent_object-setup_future_usage) on
+         * PaymentIntents to save payment methods in order to prevent saving invalid or unoptimized payment methods.
+         *
+         * By using SetupIntents, you ensure that your customers experience the minimum set of required friction,
+         * even as regulations change over time.
+         *
+         * Related guide: [Setup Intents API](https://stripe.com/docs/payments/setup-intents).
+         */
+        setup_intent?: Stripe.SetupIntent;
+
+        source?: Stripe.CustomerSource;
+
+        /**
+         * The type of error returned. One of `api_connection_error`, `api_error`, `authentication_error`, `card_error`, `idempotency_error`, `invalid_request_error`, or `rate_limit_error`
+         */
+        type: LastFinalizationError.Type;
+      }
+
+      namespace LastFinalizationError {
+        type Type =
+          | 'api_connection_error'
+          | 'api_error'
+          | 'authentication_error'
+          | 'card_error'
+          | 'idempotency_error'
+          | 'invalid_request_error'
+          | 'rate_limit_error';
+      }
+
       type Status =
         | 'deleted'
         | 'draft'
@@ -479,7 +592,7 @@ declare module 'stripe' {
         /**
          * The discount that was applied to get this discount amount.
          */
-        discount: string | Stripe.Discount | Stripe.DeletedDiscount;
+        discount: string | Stripe.Discount | DeletedDiscount;
       }
 
       interface TotalTaxAmount {
@@ -537,6 +650,11 @@ declare module 'stripe' {
        * The ID of the customer who will be billed.
        */
       customer: string;
+
+      /**
+       * The account tax IDs associated with the invoice. Only editable when the invoice is a draft.
+       */
+      account_tax_ids?: Stripe.Emptyable<Array<string>>;
 
       /**
        * A fee in %s that will be applied to the invoice and transferred to the application owner's Stripe account. The request must be made with an OAuth key or the Stripe-Account header in order to take an application fee. For more information, see the application fees [documentation](https://stripe.com/docs/connect/subscriptions#invoices).
@@ -606,7 +724,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
        */
-      metadata?: Stripe.Emptyable<MetadataParam>;
+      metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
       /**
        * Extra information about a charge for the customer's credit card statement. It must contain at least one letter. If not specified and this invoice is part of a subscription, the default `statement_descriptor` will be set to the first subscription item's product's `statement_descriptor`.
@@ -672,6 +790,11 @@ declare module 'stripe' {
     }
 
     interface InvoiceUpdateParams {
+      /**
+       * The account tax IDs associated with the invoice. Only editable when the invoice is a draft.
+       */
+      account_tax_ids?: Stripe.Emptyable<Array<string>>;
+
       /**
        * A fee in %s that will be applied to the invoice and transferred to the application owner's Stripe account. The request must be made with an OAuth key or the Stripe-Account header in order to take an application fee. For more information, see the application fees [documentation](https://stripe.com/docs/connect/subscriptions#invoices).
        */
@@ -740,7 +863,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
        */
-      metadata?: Stripe.Emptyable<MetadataParam>;
+      metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
       /**
        * Extra information about a charge for the customer's credit card statement. It must contain at least one letter. If not specified and this invoice is part of a subscription, the default `statement_descriptor` will be set to the first subscription item's product's `statement_descriptor`.
@@ -799,14 +922,14 @@ declare module 'stripe' {
        */
       collection_method?: InvoiceListParams.CollectionMethod;
 
-      created?: RangeQueryParam | number;
+      created?: Stripe.RangeQueryParam | number;
 
       /**
        * Only return invoices for the customer specified by this customer ID.
        */
       customer?: string;
 
-      due_date?: RangeQueryParam | number;
+      due_date?: Stripe.RangeQueryParam | number;
 
       /**
        * Specifies which fields in the response should be expanded.
@@ -1034,7 +1157,7 @@ declare module 'stripe' {
         /**
          * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
          */
-        metadata?: Stripe.Emptyable<MetadataParam>;
+        metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
         /**
          * The period associated with this invoice item.
@@ -1145,7 +1268,7 @@ declare module 'stripe' {
         /**
          * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
          */
-        metadata?: Stripe.Emptyable<MetadataParam>;
+        metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
         /**
          * Plan ID for this item, as a string.
@@ -1249,7 +1372,7 @@ declare module 'stripe' {
 
     class InvoicesResource {
       /**
-       * This endpoint creates a draft invoice for a given customer. The draft invoice created pulls in all pending invoice items on that customer, including prorations.
+       * This endpoint creates a draft invoice for a given customer. The draft invoice created pulls in all pending invoice items on that customer, including prorations. The invoice remains a draft until you [finalize the invoice, which allows you to [pay](#pay_invoice) or <a href="#send_invoice">send](https://stripe.com/docs/api#finalize_invoice) the invoice to your customers.
        */
       create(
         params: InvoiceCreateParams,
