@@ -36,7 +36,7 @@ declare module 'stripe' {
       application: string | Stripe.Application | null;
 
       /**
-       * The amount of the application fee (if any) requested for the resulting payment. See the PaymentIntents [use case for connected accounts](https://stripe.com/docs/payments/connected-accounts) for details.
+       * The amount of the application fee (if any) that will be requested to be applied to the payment and transferred to the application owner's Stripe account. The amount of the application fee collected will be capped at the total payment amount. For more information, see the PaymentIntents [use case for connected accounts](https://stripe.com/docs/payments/connected-accounts).
        */
       application_fee_amount: number | null;
 
@@ -65,7 +65,7 @@ declare module 'stripe' {
        *
        * The client secret can be used to complete a payment from your frontend. It should not be stored, logged, embedded in URLs, or exposed to anyone other than the customer. Make sure that you have TLS enabled on any page that includes the client secret.
        *
-       * Refer to our docs to [accept a payment](https://stripe.com/docs/payments/accept-a-payment) and learn about how `client_secret` should be handled.
+       * Refer to our docs to [accept a payment](https://stripe.com/docs/payments/accept-a-payment?integration=elements) and learn about how `client_secret` should be handled.
        */
       client_secret: string | null;
 
@@ -88,7 +88,7 @@ declare module 'stripe' {
        *
        * If present in combination with [setup_future_usage](https://stripe.com/docs/api#payment_intent_object-setup_future_usage), this PaymentIntent's payment method will be attached to the Customer after the PaymentIntent has been confirmed and any required actions from the user are complete.
        */
-      customer: string | Stripe.Customer | Stripe.DeletedCustomer | null;
+      customer: string | Stripe.Customer | DeletedCustomer | null;
 
       /**
        * An arbitrary string attached to the object. Often useful for displaying to users.
@@ -113,7 +113,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. For more information, see the [documentation](https://stripe.com/docs/payments/payment-intents/creating-payment-intents#storing-information-in-metadata).
        */
-      metadata: Metadata;
+      metadata: Stripe.Metadata;
 
       /**
        * If present, this property tells you what actions you need to take in order for your customer to fulfill a payment using the provided source.
@@ -169,11 +169,11 @@ declare module 'stripe' {
        */
       source:
         | string
-        | CustomerSource
-        | Stripe.DeletedAlipayAccount
-        | Stripe.DeletedBankAccount
-        | Stripe.DeletedBitcoinReceiver
-        | Stripe.DeletedCard
+        | Stripe.CustomerSource
+        | DeletedAlipayAccount
+        | DeletedBankAccount
+        | DeletedBitcoinReceiver
+        | DeletedCard
         | null;
 
       /**
@@ -272,6 +272,11 @@ declare module 'stripe' {
         payment_method?: Stripe.PaymentMethod;
 
         /**
+         * If the error is specific to the type of payment method, the payment method type that had a problem. This field is only populated for invoice-related errors.
+         */
+        payment_method_type?: string;
+
+        /**
          * A SetupIntent guides you through the process of setting up and saving a customer's payment credentials for future payments.
          * For example, you could use a SetupIntent to set up and save your customer's card without immediately collecting a payment.
          * Later, you can use [PaymentIntents](https://stripe.com/docs/api#payment_intents) to drive the payment flow.
@@ -297,7 +302,7 @@ declare module 'stripe' {
          */
         setup_intent?: Stripe.SetupIntent;
 
-        source?: CustomerSource;
+        source?: Stripe.CustomerSource;
 
         /**
          * The type of error returned. One of `api_connection_error`, `api_error`, `authentication_error`, `card_error`, `idempotency_error`, `invalid_request_error`, or `rate_limit_error`
@@ -399,6 +404,8 @@ declare module 'stripe' {
         oxxo?: PaymentMethodOptions.Oxxo;
 
         p24?: PaymentMethodOptions.P24;
+
+        sepa_debit?: PaymentMethodOptions.SepaDebit;
 
         sofort?: PaymentMethodOptions.Sofort;
       }
@@ -516,6 +523,14 @@ declare module 'stripe' {
 
         interface P24 {}
 
+        interface SepaDebit {
+          mandate_options?: SepaDebit.MandateOptions;
+        }
+
+        namespace SepaDebit {
+          interface MandateOptions {}
+        }
+
         interface Sofort {
           /**
            * Preferred language of the SOFORT authorization page that the customer is redirected to.
@@ -538,7 +553,7 @@ declare module 'stripe' {
       type SetupFutureUsage = 'off_session' | 'on_session';
 
       interface Shipping {
-        address?: Address;
+        address?: Stripe.Address;
 
         /**
          * The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc.
@@ -650,7 +665,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
        */
-      metadata?: MetadataParam;
+      metadata?: Stripe.MetadataParam;
 
       /**
        * Set to `true` to indicate that the customer is not in your checkout flow during this payment attempt, and therefore is unable to authenticate. This parameter is intended for scenarios where you collect card details and [charge them later](https://stripe.com/docs/payments/cards/charging-saved-cards). This parameter can only be used with [`confirm=true`](https://stripe.com/docs/api/payment_intents/create#create_payment_intent-confirm).
@@ -835,6 +850,11 @@ declare module 'stripe' {
         giropay?: PaymentMethodData.Giropay;
 
         /**
+         * If this is a `grabpay` PaymentMethod, this hash contains details about the GrabPay payment method.
+         */
+        grabpay?: PaymentMethodData.Grabpay;
+
+        /**
          * If this is an `ideal` PaymentMethod, this hash contains details about the iDEAL payment method.
          */
         ideal?: PaymentMethodData.Ideal;
@@ -847,7 +867,7 @@ declare module 'stripe' {
         /**
          * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
          */
-        metadata?: MetadataParam;
+        metadata?: Stripe.MetadataParam;
 
         /**
          * If this is an `oxxo` PaymentMethod, this hash contains details about the OXXO payment method.
@@ -1002,6 +1022,8 @@ declare module 'stripe' {
 
         interface Giropay {}
 
+        interface Grabpay {}
+
         interface Ideal {
           /**
            * The customer's bank.
@@ -1091,6 +1113,7 @@ declare module 'stripe' {
           | 'eps'
           | 'fpx'
           | 'giropay'
+          | 'grabpay'
           | 'ideal'
           | 'oxxo'
           | 'p24'
@@ -1123,6 +1146,11 @@ declare module 'stripe' {
          * If this is a `p24` PaymentMethod, this sub-hash contains details about the Przelewy24 payment method options.
          */
         p24?: Stripe.Emptyable<PaymentMethodOptions.P24>;
+
+        /**
+         * If this is a `sepa_debit` PaymentIntent, this sub-hash contains details about the SEPA Debit payment method options.
+         */
+        sepa_debit?: Stripe.Emptyable<PaymentMethodOptions.SepaDebit>;
 
         /**
          * If this is a `sofort` PaymentMethod, this sub-hash contains details about the SOFORT payment method options.
@@ -1235,6 +1263,17 @@ declare module 'stripe' {
 
         interface P24 {}
 
+        interface SepaDebit {
+          /**
+           * Additional fields for Mandate creation
+           */
+          mandate_options?: SepaDebit.MandateOptions;
+        }
+
+        namespace SepaDebit {
+          interface MandateOptions {}
+        }
+
         interface Sofort {
           /**
            * Language shown to the payer on redirect.
@@ -1260,7 +1299,7 @@ declare module 'stripe' {
         /**
          * Shipping address.
          */
-        address: AddressParam;
+        address: Stripe.AddressParam;
 
         /**
          * The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc.
@@ -1355,7 +1394,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
        */
-      metadata?: Stripe.Emptyable<MetadataParam>;
+      metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
       /**
        * ID of the payment method (a PaymentMethod, Card, or [compatible Source](https://stripe.com/docs/payments/payment-methods#compatibility) object) to attach to this PaymentIntent.
@@ -1466,6 +1505,11 @@ declare module 'stripe' {
         giropay?: PaymentMethodData.Giropay;
 
         /**
+         * If this is a `grabpay` PaymentMethod, this hash contains details about the GrabPay payment method.
+         */
+        grabpay?: PaymentMethodData.Grabpay;
+
+        /**
          * If this is an `ideal` PaymentMethod, this hash contains details about the iDEAL payment method.
          */
         ideal?: PaymentMethodData.Ideal;
@@ -1478,7 +1522,7 @@ declare module 'stripe' {
         /**
          * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
          */
-        metadata?: MetadataParam;
+        metadata?: Stripe.MetadataParam;
 
         /**
          * If this is an `oxxo` PaymentMethod, this hash contains details about the OXXO payment method.
@@ -1633,6 +1677,8 @@ declare module 'stripe' {
 
         interface Giropay {}
 
+        interface Grabpay {}
+
         interface Ideal {
           /**
            * The customer's bank.
@@ -1722,6 +1768,7 @@ declare module 'stripe' {
           | 'eps'
           | 'fpx'
           | 'giropay'
+          | 'grabpay'
           | 'ideal'
           | 'oxxo'
           | 'p24'
@@ -1754,6 +1801,11 @@ declare module 'stripe' {
          * If this is a `p24` PaymentMethod, this sub-hash contains details about the Przelewy24 payment method options.
          */
         p24?: Stripe.Emptyable<PaymentMethodOptions.P24>;
+
+        /**
+         * If this is a `sepa_debit` PaymentIntent, this sub-hash contains details about the SEPA Debit payment method options.
+         */
+        sepa_debit?: Stripe.Emptyable<PaymentMethodOptions.SepaDebit>;
 
         /**
          * If this is a `sofort` PaymentMethod, this sub-hash contains details about the SOFORT payment method options.
@@ -1866,6 +1918,17 @@ declare module 'stripe' {
 
         interface P24 {}
 
+        interface SepaDebit {
+          /**
+           * Additional fields for Mandate creation
+           */
+          mandate_options?: SepaDebit.MandateOptions;
+        }
+
+        namespace SepaDebit {
+          interface MandateOptions {}
+        }
+
         interface Sofort {
           /**
            * Language shown to the payer on redirect.
@@ -1891,7 +1954,7 @@ declare module 'stripe' {
         /**
          * Shipping address.
          */
-        address: AddressParam;
+        address: Stripe.AddressParam;
 
         /**
          * The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc.
@@ -1926,7 +1989,7 @@ declare module 'stripe' {
       /**
        * A filter on the list, based on the object `created` field. The value can be a string with an integer Unix timestamp, or it can be a dictionary with a number of different query options.
        */
-      created?: RangeQueryParam | number;
+      created?: Stripe.RangeQueryParam | number;
 
       /**
        * Only return PaymentIntents for the customer specified by this customer ID.
@@ -2211,6 +2274,11 @@ declare module 'stripe' {
         giropay?: PaymentMethodData.Giropay;
 
         /**
+         * If this is a `grabpay` PaymentMethod, this hash contains details about the GrabPay payment method.
+         */
+        grabpay?: PaymentMethodData.Grabpay;
+
+        /**
          * If this is an `ideal` PaymentMethod, this hash contains details about the iDEAL payment method.
          */
         ideal?: PaymentMethodData.Ideal;
@@ -2223,7 +2291,7 @@ declare module 'stripe' {
         /**
          * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
          */
-        metadata?: MetadataParam;
+        metadata?: Stripe.MetadataParam;
 
         /**
          * If this is an `oxxo` PaymentMethod, this hash contains details about the OXXO payment method.
@@ -2378,6 +2446,8 @@ declare module 'stripe' {
 
         interface Giropay {}
 
+        interface Grabpay {}
+
         interface Ideal {
           /**
            * The customer's bank.
@@ -2467,6 +2537,7 @@ declare module 'stripe' {
           | 'eps'
           | 'fpx'
           | 'giropay'
+          | 'grabpay'
           | 'ideal'
           | 'oxxo'
           | 'p24'
@@ -2499,6 +2570,11 @@ declare module 'stripe' {
          * If this is a `p24` PaymentMethod, this sub-hash contains details about the Przelewy24 payment method options.
          */
         p24?: Stripe.Emptyable<PaymentMethodOptions.P24>;
+
+        /**
+         * If this is a `sepa_debit` PaymentIntent, this sub-hash contains details about the SEPA Debit payment method options.
+         */
+        sepa_debit?: Stripe.Emptyable<PaymentMethodOptions.SepaDebit>;
 
         /**
          * If this is a `sofort` PaymentMethod, this sub-hash contains details about the SOFORT payment method options.
@@ -2611,6 +2687,17 @@ declare module 'stripe' {
 
         interface P24 {}
 
+        interface SepaDebit {
+          /**
+           * Additional fields for Mandate creation
+           */
+          mandate_options?: SepaDebit.MandateOptions;
+        }
+
+        namespace SepaDebit {
+          interface MandateOptions {}
+        }
+
         interface Sofort {
           /**
            * Language shown to the payer on redirect.
@@ -2636,7 +2723,7 @@ declare module 'stripe' {
         /**
          * Shipping address.
          */
-        address: AddressParam;
+        address: Stripe.AddressParam;
 
         /**
          * The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc.
