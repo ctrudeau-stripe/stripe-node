@@ -1,4 +1,5 @@
 // File generated from our OpenAPI spec
+
 declare module 'stripe' {
   namespace Stripe {
     /**
@@ -55,7 +56,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
        */
-      metadata: Metadata | null;
+      metadata: Stripe.Metadata | null;
 
       /**
        * Configuration for the subscription schedule's phases.
@@ -97,6 +98,11 @@ declare module 'stripe' {
       }
 
       interface DefaultSettings {
+        /**
+         * A non-negative decimal between 0 and 100, with at most two decimal places. This represents the percentage of the subscription invoice subtotal that will be transferred to the application owner's Stripe account during this phase of the schedule.
+         */
+        application_fee_percent: number | null;
+
         /**
          * Possible values are `phase_start` or `automatic`. If `phase_start` then billing cycle anchor of the subscription is set to the start of the phase when entering the phase. If `automatic` then the billing cycle anchor is automatically modified as needed when entering the phase. For more information, see the billing cycle [documentation](https://stripe.com/docs/billing/subscriptions/billing-cycle).
          */
@@ -376,7 +382,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
        */
-      metadata?: Stripe.Emptyable<MetadataParam>;
+      metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
       /**
        * List representing phases of the subscription schedule. Each phase can be customized to have different durations, plans, and coupons. If there are multiple phases, the `end_date` of one phase will always equal the `start_date` of the next phase.
@@ -391,6 +397,11 @@ declare module 'stripe' {
 
     namespace SubscriptionScheduleCreateParams {
       interface DefaultSettings {
+        /**
+         * A non-negative decimal between 0 and 100, with at most two decimal places. This represents the percentage of the subscription invoice subtotal that will be transferred to the application owner's Stripe account. The request must be made by a platform account on a connected account in order to set an application fee percentage. For more information, see the application fees [documentation](https://stripe.com/docs/connect/subscriptions#collecting-fees-on-subscriptions).
+         */
+        application_fee_percent?: number;
+
         /**
          * Can be set to `phase_start` to set the anchor to the start of the phase or `automatic` to automatically change it if needed. Cannot be set to `phase_start` if this phase specifies a trial. For more information, see the billing cycle [documentation](https://stripe.com/docs/billing/subscriptions/billing-cycle).
          */
@@ -746,7 +757,7 @@ declare module 'stripe' {
       /**
        * Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.
        */
-      metadata?: Stripe.Emptyable<MetadataParam>;
+      metadata?: Stripe.Emptyable<Stripe.MetadataParam>;
 
       /**
        * List representing phases of the subscription schedule. Each phase can be customized to have different durations, plans, and coupons. If there are multiple phases, the `end_date` of one phase will always equal the `start_date` of the next phase. Note that past phases can be omitted.
@@ -761,6 +772,11 @@ declare module 'stripe' {
 
     namespace SubscriptionScheduleUpdateParams {
       interface DefaultSettings {
+        /**
+         * A non-negative decimal between 0 and 100, with at most two decimal places. This represents the percentage of the subscription invoice subtotal that will be transferred to the application owner's Stripe account. The request must be made by a platform account on a connected account in order to set an application fee percentage. For more information, see the application fees [documentation](https://stripe.com/docs/connect/subscriptions#collecting-fees-on-subscriptions).
+         */
+        application_fee_percent?: number;
+
         /**
          * Can be set to `phase_start` to set the anchor to the start of the phase or `automatic` to automatically change it if needed. Cannot be set to `phase_start` if this phase specifies a trial. For more information, see the billing cycle [documentation](https://stripe.com/docs/billing/subscriptions/billing-cycle).
          */
@@ -1101,17 +1117,17 @@ declare module 'stripe' {
       /**
        * Only return subscription schedules that were created canceled the given date interval.
        */
-      canceled_at?: RangeQueryParam | number;
+      canceled_at?: Stripe.RangeQueryParam | number;
 
       /**
        * Only return subscription schedules that completed during the given date interval.
        */
-      completed_at?: RangeQueryParam | number;
+      completed_at?: Stripe.RangeQueryParam | number;
 
       /**
        * Only return subscription schedules that were created during the given date interval.
        */
-      created?: RangeQueryParam | number;
+      created?: Stripe.RangeQueryParam | number;
 
       /**
        * Only return subscription schedules for the given customer.
@@ -1126,7 +1142,7 @@ declare module 'stripe' {
       /**
        * Only return subscription schedules that were released during the given date interval.
        */
-      released_at?: RangeQueryParam | number;
+      released_at?: Stripe.RangeQueryParam | number;
 
       /**
        * Only return subscription schedules that have not started yet.
