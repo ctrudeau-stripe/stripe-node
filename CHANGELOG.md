@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 8.132.0 - 2020-12-18
+* [#999](https://github.com/ctrudeau-stripe/stripe-node/pull/999) DESCRIBE CHANGES HERE (try to use the same style, tense, etc. as the other entries)
+
+## 8.131.0 - 2020-12-18
+* [#999](https://github.com/ctrudeau-stripe/stripe-node/pull/999) DESCRIBE CHANGES HERE (try to use the same style, tense, etc. as the other entries)
+
 ## 8.129.0 - 2020-12-15
 * [#1093](https://github.com/stripe/stripe-node/pull/1093) API Updates
   * Added support for card_present on SetupAttempt.payment_method_details
